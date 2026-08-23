@@ -1,5 +1,63 @@
 import 'package:flutter/material.dart';
 
+// Profile class
+class Profile {
+  String? image;
+  String? name;
+  String? courseSection;
+  int? age;
+  String? hobby;
+
+  Profile({
+    required this.image,
+    required this.name,
+    required this.courseSection,
+    required this.age,
+    required this.hobby,
+  });
+}
+
+// Five different profiles
+List<Profile> profiles = [
+  Profile(
+    image: 'assets/zelon.png',
+    name: 'Zelon Estimo',
+    courseSection: null,
+    age: 21,
+    hobby: 'Photographer',
+  ),
+
+  Profile(
+    image: 'assets/ryan.png',
+    name: null,
+    courseSection: 'BSIT-4',
+    age: 21,
+    hobby: 'Drilling',
+  ),
+
+  Profile(
+    image: 'assets/leon.png',
+    name: 'Leonardo Cajes Jr.',
+    courseSection: null,
+    age: 21,
+    hobby: 'Twerking',
+  ),
+  Profile(
+    image: 'assets/jackie.png',
+    name: 'Jacklyn Reyes',
+    courseSection: 'BSTM-4',
+    age: null,
+    hobby: 'Fishing',
+  ),
+  Profile(
+    image: 'assets/julie.png',
+    name: 'Julie Ann Malinao',
+    courseSection: 'BSIT-4',
+    age: 21,
+    hobby: null,
+  ),
+];
+
 void main() {
   runApp(const MyApp());
 }
@@ -10,198 +68,76 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Profile & Favorites'),
-          backgroundColor: Colors.blueAccent,
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            // Prevents screen overflow
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // CARD 1: Your Profile Information
+        appBar: AppBar(title: const Text('Five Profiles')),
+
+        // Provides scrolling capability
+        // when the content is larger than the screen
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              for (Profile profile in profiles)
                 Card(
-                  elevation: 4,
+                  margin: const EdgeInsets.all(15),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    padding: const EdgeInsets.all(15),
+                    child: Row(
                       children: [
-                        const Icon(
-                          Icons.account_circle,
-                          size: 60,
-                          color: Colors.blueAccent,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Zelon Matthew C. Estimo',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
+                        // Profile image
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.asset(
+                            profile.image ?? 'Missing',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'BSIT - 3',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'My First Flutter Application',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'August 21, 2026',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Hobby: Art & Design 🎨',
-                          style: TextStyle(fontSize: 14),
-                        ),
 
-                        // FLAG 10: Discovered Widget - Divider
-                        // This adds a crisp horizontal dividing rule to break up the text blocks
-                        const Divider(
-                          height: 24, // Spacing space around the divider line
-                          thickness: 1, // Line thickness pixel count
-                          color: Colors.grey, // Line color presentation
-                        ),
+                        const SizedBox(width: 15),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Age: 21',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(width: 24),
-                            const Text(
-                              'Birthdate: June 11, 2005',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20), // Spacing between Card 1 and Card 2
-                Card(
-                  elevation: 4,
-                  color:
-                      Colors.grey[50], // Subtle background tint for distinction
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Card Header
-                        const Row(
-                          children: [
-                            Icon(Icons.favorite, color: Colors.redAccent),
-                            SizedBox(width: 8),
-                            Text(
-                              'My Favorites',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.redAccent,
+                        // Profile information
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                profile.name ?? 'Unknown',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
 
-                        // Row: Two items displayed side-by-side
-                        const Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Favorite Game:',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Genshin, MLBB, Valorant',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Favorite Food',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Ramen, Buldak & Ricecakes',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                              const SizedBox(height: 5),
 
-                        const Text(
-                          'Favorite Movie/Series',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Though I am an inept villainess & Takopi',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
+                              Text(
+                                profile.courseSection ?? 'Missing',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+
+                              const SizedBox(height: 5),
+
+                              Text(
+                                "Age: ${profile.age ?? 'Missing'}",
+                                style: const TextStyle(fontSize: 16),
+                              ),
+
+                              const SizedBox(height: 5),
+
+                              Text(
+                                "Hobby: ${profile.hobby ?? 'Not Provided'}",
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
       ),
