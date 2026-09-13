@@ -99,10 +99,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Toggling favorite updates three things at once, all inside setState:
-  // 1. isFavorite -> changes the heart icon
-  // 2. likeCount -> the counter text goes up/down
-  // 3. the SnackBar text also depends on the new isFavorite value
   void toggleFavorite(BuildContext context, Student student) {
     setState(() {
       student.isFavorite = !student.isFavorite;
@@ -137,11 +133,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Show edit placeholder dialog.
-  // IMPORTANT: this needs a context that is BELOW MaterialApp in the
-  // widget tree (e.g. from itemBuilder), not the State's own `context`
-  // (which is above MaterialApp). Using the wrong one causes
-  // "No MaterialLocalizations found".
   void showEditDialog(BuildContext context, Student student) {
     showDialog(
       context: context,
