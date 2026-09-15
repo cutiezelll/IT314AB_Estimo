@@ -44,7 +44,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Tracks whether we're still "fetching" student data
   bool isLoading = true;
 
   @override
