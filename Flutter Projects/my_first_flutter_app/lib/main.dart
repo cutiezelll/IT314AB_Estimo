@@ -12,6 +12,7 @@ class Student {
   String favoriteSubject;
   bool isFavorite;
   int likeCount;
+  bool active;
 
   Student({
     required this.image,
@@ -25,69 +26,13 @@ class Student {
     required this.favoriteSubject,
     this.isFavorite = false,
     this.likeCount = 0,
+    this.active = true,
   });
 }
 
-List<Student> students = [
-  Student(
-    image: 'assets/zelon.jpg',
-    name: 'Zelon Estimo',
-    course: 'BSIT',
-    yearLevel: '3rd Year',
-    age: 21,
-    hobby: 'Photography',
-    studentId: '2980',
-    email: 'estimozelon@gmail.com',
-    favoriteSubject: 'UI/UX Designing',
-  ),
-  Student(
-    image: 'assets/ryan.jpg',
-    name: 'Ryan Porquiado',
-    course: 'BSIT',
-    yearLevel: '4th Year',
-    age: 21,
-    hobby: 'Drilling',
-    studentId: '2986',
-    email: 'ryanporquiado@gmail.com',
-    favoriteSubject: 'Recess',
-  ),
-  Student(
-    image: 'assets/leon.jpg',
-    name: 'Leonardo Cajes Jr.',
-    course: 'BSTM',
-    yearLevel: '4th Year',
-    age: 21,
-    hobby: 'Twerking',
-    studentId: '2988',
-    email: 'leonardocajes@gmail.com',
-    favoriteSubject: 'Research',
-  ),
-  Student(
-    image: 'assets/jackie.jpg',
-    name: 'Jacklyn Reyes',
-    course: 'BSTM',
-    yearLevel: '4th Year',
-    age: 22,
-    hobby: 'Fishing',
-    studentId: '6374',
-    email: 'jacklynreyes@gmail.com',
-    favoriteSubject: 'Traveling & Tour',
-  ),
-  Student(
-    image: 'assets/julie.jpg',
-    name: 'Julie Ann Malinao',
-    course: 'BSIT',
-    yearLevel: '4th Year',
-    age: 21,
-    hobby: 'Eating',
-    studentId: '3234',
-    email: 'julieannmalinao@gmail.com',
-    favoriteSubject: 'Fundamentals of Database System',
-  ),
-];
+List<Student> students = [];
 
 void main() {
-  students.sort((a, b) => a.name.compareTo(b.name));
   runApp(const MyApp());
 }
 
@@ -99,10 +44,89 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // Toggling favorite updates three things at once, all inside setState:
-  // 1. isFavorite -> changes the heart icon
-  // 2. likeCount -> the counter text goes up/down
-  // 3. the SnackBar text also depends on the new isFavorite value
+  // Tracks whether we're still "fetching" student data
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadStudents();
+  }
+
+  Future<void> loadStudents() async {
+    await Future.delayed(const Duration(seconds: 200));
+
+    final fetchedStudents = [
+      Student(
+        image: 'assets/zelon.jpg',
+        name: 'Zelon Estimo',
+        course: 'BSIT',
+        yearLevel: '3rd Year',
+        age: 21,
+        hobby: 'Photography',
+        studentId: '2980',
+        email: 'estimozelon@gmail.com',
+        favoriteSubject: 'UI/UX Designing',
+        active: true,
+      ),
+      Student(
+        image: 'assets/ryan.jpg',
+        name: 'Ryan Porquiado',
+        course: 'BSIT',
+        yearLevel: '4th Year',
+        age: 21,
+        hobby: 'Drilling',
+        studentId: '2986',
+        email: 'ryanporquiado@gmail.com',
+        favoriteSubject: 'Recess',
+        active: true,
+      ),
+      Student(
+        image: 'assets/leon.jpg',
+        name: 'Leonardo Cajes Jr.',
+        course: 'BSTM',
+        yearLevel: '4th Year',
+        age: 21,
+        hobby: 'Twerking',
+        studentId: '2988',
+        email: 'leonardocajes@gmail.com',
+        favoriteSubject: 'Research',
+        active: true,
+      ),
+      Student(
+        image: 'assets/jackie.jpg',
+        name: 'Jacklyn Reyes',
+        course: 'BSTM',
+        yearLevel: '4th Year',
+        age: 22,
+        hobby: 'Fishing',
+        studentId: '6374',
+        email: 'jacklynreyes@gmail.com',
+        favoriteSubject: 'Traveling & Tour',
+        active: true,
+      ),
+      Student(
+        image: 'assets/julie.jpg',
+        name: 'Julie Ann Malinao',
+        course: 'BSIT',
+        yearLevel: '4th Year',
+        age: 21,
+        hobby: 'Eating',
+        studentId: '3234',
+        email: 'julieannmalinao@gmail.com',
+        favoriteSubject: 'Fundamentals of Database System',
+        active: true,
+      ),
+    ];
+
+    fetchedStudents.sort((a, b) => a.name.compareTo(b.name));
+
+    setState(() {
+      students = fetchedStudents;
+      isLoading = false;
+    });
+  }
+
   void toggleFavorite(BuildContext context, Student student) {
     setState(() {
       student.isFavorite = !student.isFavorite;
@@ -123,7 +147,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Remove a student from the list and refresh the screen
   void deleteStudent(BuildContext context, Student student) {
     setState(() {
       students.remove(student);
@@ -137,11 +160,6 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-  // Show edit placeholder dialog.
-  // IMPORTANT: this needs a context that is BELOW MaterialApp in the
-  // widget tree (e.g. from itemBuilder), not the State's own `context`
-  // (which is above MaterialApp). Using the wrong one causes
-  // "No MaterialLocalizations found".
   void showEditDialog(BuildContext context, Student student) {
     showDialog(
       context: context,
@@ -157,6 +175,94 @@ class _MyAppState extends State<MyApp> {
           ],
         );
       },
+    );
+  }
+
+  void addStudent(BuildContext context) {
+    setState(() {
+      students.add(
+        Student(
+          image: 'assets/kourerin.png',
+          name: 'Kou Rerin',
+          course: 'BSIT',
+          yearLevel: '1st Year',
+          age: 18,
+          hobby: 'Sogdian Whirl',
+          studentId: '0023',
+          email: 'kourerin@gmail.com',
+          favoriteSubject: 'Archery',
+          active: true,
+        ),
+      );
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("New student added"),
+        duration: Duration(seconds: 1),
+      ), // SnackBar
+    );
+  }
+
+  Widget statusIndicator(Student student) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: student.active ? Colors.green[100] : Colors.red[100],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: student.active ? Colors.green : Colors.red),
+      ),
+      child: Text(
+        student.active ? 'Active' : 'Inactive',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: student.active ? Colors.green[800] : Colors.red[800],
+        ),
+      ),
+    );
+  }
+
+  Widget loadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            'Loading students...',
+            style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget emptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.people_outline, size: 80, color: Colors.grey[500]),
+          const SizedBox(height: 16),
+          const Text(
+            'No students found.',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Student directory is empty.',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => addStudent(context),
+            icon: const Icon(Icons.person_add),
+            label: const Text('Add Student'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -208,6 +314,8 @@ class _MyAppState extends State<MyApp> {
                 ],
               ),
 
+              const SizedBox(height: 6),
+              statusIndicator(student),
               const SizedBox(height: 10),
 
               Text(
@@ -229,15 +337,20 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 12),
 
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: () => showEditDialog(context, student),
+                    onPressed: student.active
+                        ? () => showEditDialog(context, student)
+                        : null,
                     icon: const Icon(Icons.edit),
                     label: const Text('Edit'),
                   ),
+                  const SizedBox(width: 12),
                   ElevatedButton.icon(
-                    onPressed: () => deleteStudent(context, student),
+                    onPressed: student.active
+                        ? () => deleteStudent(context, student)
+                        : null,
                     icon: const Icon(Icons.delete),
                     label: const Text('Delete'),
                   ),
@@ -257,13 +370,10 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         backgroundColor: const Color(0xFFE7E3E3),
         appBar: AppBar(title: const Text('My First Flutter Application')),
-        body: students.isEmpty
-            ? const Center(
-                child: Text(
-                  'No students found.',
-                  style: TextStyle(fontSize: 18),
-                ),
-              )
+        body: isLoading
+            ? loadingState()
+            : students.isEmpty
+            ? emptyState(context)
             : ListView.builder(
                 padding: const EdgeInsets.all(8),
                 itemCount: students.length,
