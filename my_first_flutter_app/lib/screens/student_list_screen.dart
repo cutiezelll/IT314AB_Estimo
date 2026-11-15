@@ -134,12 +134,14 @@ class _StudentListScreenState extends State<StudentListScreen> {
     });
   }
 
-  void openAddStudent() {
-    Navigator.pushNamed(context, AppRoutes.addStudent).then((_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+  Future<void> openAddStudent() async {
+    final result = await Navigator.pushNamed(context, AppRoutes.addStudent);
+
+    if (!mounted) return;
+
+    if (result == true) {
+      setState(() {});
+    }
   }
 
   Widget statusIndicator(Student student) {
