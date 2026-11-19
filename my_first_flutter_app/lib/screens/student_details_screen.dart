@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../profile.dart';
+import '../repositories/student_repository.dart';
 
 class StudentDetailsScreen extends StatefulWidget {
   const StudentDetailsScreen({super.key});
@@ -10,6 +11,8 @@ class StudentDetailsScreen extends StatefulWidget {
 }
 
 class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
+  final studentRepository = StudentRepository();
+
   Widget detailRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -40,90 +43,133 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
       text: student.favoriteSubject,
     );
 
+    bool isSaving = false;
+
     showDialog(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('Edit ${student.name}'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text('Edit ${student.name}'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Name'),
+                    ),
+                    TextField(
+                      controller: courseController,
+                      decoration: const InputDecoration(labelText: 'Course'),
+                    ),
+                    TextField(
+                      controller: yearController,
+                      decoration: const InputDecoration(
+                        labelText: 'Year Level',
+                      ),
+                    ),
+                    TextField(
+                      controller: ageController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Age'),
+                    ),
+                    TextField(
+                      controller: hobbyController,
+                      decoration: const InputDecoration(labelText: 'Hobby'),
+                    ),
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                    ),
+                    TextField(
+                      controller: subjectController,
+                      decoration: const InputDecoration(
+                        labelText: 'Favorite Subject',
+                      ),
+                    ),
+                  ],
                 ),
-                TextField(
-                  controller: courseController,
-                  decoration: const InputDecoration(labelText: 'Course'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
                 ),
-                TextField(
-                  controller: yearController,
-                  decoration: const InputDecoration(labelText: 'Year Level'),
-                ),
-                TextField(
-                  controller: ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Age'),
-                ),
-                TextField(
-                  controller: hobbyController,
-                  decoration: const InputDecoration(labelText: 'Hobby'),
-                ),
-                TextField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-                TextField(
-                  controller: subjectController,
-                  decoration: const InputDecoration(
-                    labelText: 'Favorite Subject',
-                  ),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final newAge = int.tryParse(ageController.text);
+
+                          if (nameController.text.trim().isEmpty ||
+                              newAge == null ||
+                              newAge < 0) {
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please enter a valid name and age.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isSaving = true;
+                          });
+
+                          student.name = nameController.text.trim();
+                          student.course = courseController.text.trim();
+                          student.yearLevel = yearController.text.trim();
+                          student.age = newAge;
+                          student.hobby = hobbyController.text.trim();
+                          student.email = emailController.text.trim();
+                          student.favoriteSubject = subjectController.text
+                              .trim();
+
+                          try {
+                            await studentRepository.updateStudent(student);
+
+                            if (!mounted) return;
+
+                            setState(() {});
+
+                            Navigator.pop(dialogContext);
+
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Student updated successfully in Neon!',
+                                ),
+                              ),
+                            );
+                          } catch (error) {
+                            if (!mounted) return;
+
+                            setDialogState(() {
+                              isSaving = false;
+                            });
+
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(content: Text('Update failed: $error')),
+                            );
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final newAge = int.tryParse(ageController.text);
-
-                if (nameController.text.trim().isEmpty ||
-                    newAge == null ||
-                    newAge < 0) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please enter a valid name and age.'),
-                    ),
-                  );
-                  return;
-                }
-
-                setState(() {
-                  student.name = nameController.text.trim();
-                  student.course = courseController.text.trim();
-                  student.yearLevel = yearController.text.trim();
-                  student.age = newAge;
-                  student.hobby = hobbyController.text.trim();
-                  student.email = emailController.text.trim();
-                  student.favoriteSubject = subjectController.text.trim();
-                });
-
-                Navigator.pop(dialogContext);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Student updated successfully.'),
-                  ),
-                );
-              },
-              child: const Text('Save'),
-            ),
-          ],
+            );
+          },
         );
       },
     ).then((_) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../profile.dart';
+import '../repositories/student_repository.dart';
 
 class AddStudentScreen extends StatefulWidget {
   const AddStudentScreen({super.key});
@@ -11,6 +12,9 @@ class AddStudentScreen extends StatefulWidget {
 
 class _AddStudentScreenState extends State<AddStudentScreen> {
   final _formKey = GlobalKey<FormState>();
+  final StudentRepository studentRepository = StudentRepository();
+
+  bool isSubmitting = false;
 
   final studentIdController = TextEditingController();
   final fullNameController = TextEditingController();
@@ -124,13 +128,19 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     );
   }
 
-  void enrollStudent() {
+  Future<void> enrollStudent() async {
+    if (isSubmitting) return;
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
+    setState(() {
+      isSubmitting = true;
+    });
+
     final newStudent = Student(
-      image: 'assets/zelon.jpg',
+      image: 'assets/zel.jpg',
       name: fullNameController.text.trim(),
       course: courseController.text.trim(),
       yearLevel: yearLevelController.text.trim(),
@@ -144,9 +154,26 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       active: true,
     );
 
-    students.add(newStudent);
+    try {
+      await studentRepository.addStudent(newStudent);
 
-    Navigator.pop(context, true);
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Enrollment failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+      setState(() {
+        isSubmitting = false;
+      });
+    }
   }
 
   @override
@@ -228,7 +255,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
-                  onPressed: enrollStudent,
+                  onPressed: isSubmitting ? null : enrollStudent,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7F0FC),
                     foregroundColor: const Color(0xFF8065B5),
@@ -241,10 +268,16 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                       vertical: 12,
                     ),
                   ),
-                  child: const Text(
-                    'Enroll Student',
-                    style: TextStyle(fontSize: 11),
-                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Enroll Student',
+                          style: TextStyle(fontSize: 11),
+                        ),
                 ),
               ),
             ],

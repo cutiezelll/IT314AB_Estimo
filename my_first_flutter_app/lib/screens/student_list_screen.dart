@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../profile.dart';
+import '../repositories/student_repository.dart';
 
 class StudentListScreen extends StatefulWidget {
   const StudentListScreen({super.key});
@@ -11,6 +12,9 @@ class StudentListScreen extends StatefulWidget {
 
 class _StudentListScreenState extends State<StudentListScreen> {
   bool isLoading = true;
+  String? loadError;
+
+  final StudentRepository studentRepository = StudentRepository();
 
   @override
   void initState() {
@@ -19,73 +23,27 @@ class _StudentListScreenState extends State<StudentListScreen> {
   }
 
   Future<void> loadStudents() async {
-    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      isLoading = true;
+      loadError = null;
+    });
 
-    if (students.isEmpty) {
-      final fetchedStudents = [
-        Student(
-          image: 'assets/zel.jpg',
-          name: 'Zelon Estimo',
-          course: 'BSIT',
-          yearLevel: '3rd Year',
-          age: 21,
-          hobby: 'Photography',
-          studentId: '2980',
-          email: 'estimozelon@gmail.com',
-          favoriteSubject: 'UI/UX Designing',
-        ),
-        Student(
-          image: 'assets/ryan.jpg',
-          name: 'Ryan Porquiado',
-          course: 'BSIT',
-          yearLevel: '4th Year',
-          age: 21,
-          hobby: 'Drilling',
-          studentId: '2986',
-          email: 'ryanporquiado@gmail.com',
-          favoriteSubject: 'Recess',
-        ),
-        Student(
-          image: 'assets/leon.jpg',
-          name: 'Leonardo Cajes Jr.',
-          course: 'BSTM',
-          yearLevel: '4th Year',
-          age: 21,
-          hobby: 'Twerking',
-          studentId: '2988',
-          email: 'leonardocajes@gmail.com',
-          favoriteSubject: 'Research',
-        ),
-        Student(
-          image: 'assets/jackie.jpg',
-          name: 'Jacklyn Reyes',
-          course: 'BSTM',
-          yearLevel: '4th Year',
-          age: 22,
-          hobby: 'Fishing',
-          studentId: '6374',
-          email: 'jacklynreyes@gmail.com',
-          favoriteSubject: 'Traveling & Tour',
-        ),
-        Student(
-          image: 'assets/julie.jpg',
-          name: 'Julie Ann Malinao',
-          course: 'BSIT',
-          yearLevel: '4th Year',
-          age: 21,
-          hobby: 'Eating',
-          studentId: '3234',
-          email: 'julieannmalinao@gmail.com',
-          favoriteSubject: 'Fundamentals of Database System',
-        ),
-      ];
+    try {
+      final fetchedStudents = await studentRepository.getStudents();
 
       fetchedStudents.sort((a, b) => a.name.compareTo(b.name));
-      students = fetchedStudents;
-    }
 
-    if (mounted) {
+      if (!mounted) return;
+
       setState(() {
+        students = fetchedStudents;
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        loadError = e.toString();
         isLoading = false;
       });
     }
@@ -109,17 +67,61 @@ class _StudentListScreenState extends State<StudentListScreen> {
     );
   }
 
-  void deleteStudent(Student student) {
-    setState(() {
-      students.remove(student);
-    });
+  Future<void> deleteStudent(Student student) async {
+    if (student.databaseId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Student database ID is missing.')),
+      );
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${student.name} removed'),
-        duration: const Duration(seconds: 1),
-      ),
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete Student?'),
+          content: Text('Are you sure you want to delete ${student.name}?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
+
+    if (confirm != true) return;
+
+    try {
+      await studentRepository.deleteStudent(student.databaseId!);
+
+      if (!mounted) return;
+
+      setState(() {
+        students.remove(student);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${student.name} deleted successfully!'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+    }
   }
 
   void openDetails(Student student) {
@@ -140,7 +142,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
     if (!mounted) return;
 
     if (result == true) {
-      setState(() {});
+      await loadStudents();
     }
   }
 
@@ -175,6 +177,36 @@ class _StudentListScreenState extends State<StudentListScreen> {
             style: TextStyle(fontSize: 16, color: Colors.grey[700]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget errorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 70, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              'Unable to load students.',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              loadError ?? 'Something went wrong.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: loadStudents,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -292,9 +324,16 @@ class _StudentListScreenState extends State<StudentListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE7E3E3),
-      appBar: AppBar(title: const Text('My First Flutter Application')),
+      appBar: AppBar(
+        title: const Text('My First Flutter Application'),
+        actions: [
+          IconButton(onPressed: loadStudents, icon: const Icon(Icons.refresh)),
+        ],
+      ),
       body: isLoading
           ? loadingState()
+          : loadError != null
+          ? errorState()
           : students.isEmpty
           ? emptyState()
           : ListView.builder(
